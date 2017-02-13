@@ -1,0 +1,10 @@
+<launch>
+
+<node pkg="ros_myo" name="myo1" type="myo-rawNode.py" args="/dev/ttyACM0 -c con1 -d disc1"/>
+
+<node pkg="ros_myo" name="myo2" type="myo-rawNode.py" args="/dev/ttyACM1 -c con2 -d disc2"/>
+
+
+
+
+</launch>

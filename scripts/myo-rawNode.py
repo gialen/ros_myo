@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 
+import argparse
 import enum
 import re
 import struct
@@ -17,6 +18,8 @@ from std_msgs.msg import String, UInt8, Empty, Header, MultiArrayLayout, MultiAr
 from geometry_msgs.msg import Quaternion, Vector3
 from sensor_msgs.msg import Imu
 from ros_myo.msg import MyoArm, EmgArray
+
+glob_name = ''
 
 def multichr(ords):
     if sys.version_info[0] >= 3:
@@ -193,8 +196,8 @@ class MyoRaw(object):
         self.pose_handlers = []
         self.connect_handlers = []
         self.disconnect_handlers = []
-	self.vibration_requested = None
-	self.cpt = 0
+        self.vibration_requested = None
+        self.cpt = 0
 
     def detect_tty(self):
         for p in comports():
@@ -206,35 +209,15 @@ class MyoRaw(object):
 
     def run(self, timeout=None):
         self.bt.recv_packet(timeout)
-	
-	if self.vibration_requested:
+
+        if self.vibration_requested:
             self.vibrate(self.vibration_requested)
             self.vibration_requested = None
-	if time.time() > self.time_data + 10:
-	    print('no connection ')
-	    self.disconnect()
-	    self.connect()
-	    self.time_data = time.time()
-
-	## get firmware version
-        ##fw = self.read_attr(0x17)
-        ##_, _, _, _, v0, v1, v2, v3 = unpack('BHBBHHHH', fw.payload)
-        ##print('firmware version: %d.%d.%d.%d' % (v0, v1, v2, v3))
-	
-	##self.cpt = self.cpt + 1
-
-	##if self.cpt == 100:
-	##    name = self.read_attr(0x03)
-        ##    print('device name: %s' % name.payload)
-	##    self.cpt = 0
-
-	##c = unpack('B', self.bt.get_connections().payload[:4])
-	##print('no %d ' % len(self.bt.get_connections().payload[:4]))
-	##print('no %d' % c)
-	##if self.bt.get_connections() == None:
-	##    print('no connection ')
-        ##else:
-	##    print('connected')
+        if time.time() > self.time_data + 1:
+            print('no connection ')
+            self.disconnect()
+            self.connect()
+            self.time_data = time.time()
 
     def connect(self):
 
@@ -265,7 +248,7 @@ class MyoRaw(object):
         fw = self.read_attr(0x17)
         _, _, _, _, v0, v1, v2, v3 = unpack('BHBBHHHH', fw.payload)
         print('firmware version: %d.%d.%d.%d' % (v0, v1, v2, v3))
-	self.time_data = time.time()
+        self.time_data = time.time()
 
         self.old = (v0 == 0)
 
@@ -352,7 +335,11 @@ class MyoRaw(object):
         	self.bt.add_handler(handle_data)
 		self.cpt = 1
 
-	self.on_connect()
+        if self.cpt == 0:
+            self.bt.add_handler(handle_data)
+            self.cpt = 1
+        
+        self.on_connect()
 
 
     def write_attr(self, attr, val):
@@ -367,7 +354,7 @@ class MyoRaw(object):
     def disconnect(self):
         if self.conn is not None:
             self.bt.disconnect(self.conn)
-	    self.on_disconnect()
+            self.on_disconnect()
 
     def start_raw(self):
         '''Sending this sequence for v1.0 firmware seems to enable both raw data and
@@ -444,12 +431,13 @@ if __name__ == '__main__':
     rospy.init_node('myo_raw', anonymous=True)
 
     # Define Publishers
-    imuPub = rospy.Publisher('myo_imu', Imu, queue_size=10)
-    emgPub = rospy.Publisher('myo_emg', EmgArray, queue_size=10)
-    armPub = rospy.Publisher('myo_arm', MyoArm, queue_size=10)
-    gestPub = rospy.Publisher('myo_gest', UInt8, queue_size=10)
-    connectPub = rospy.Publisher('myo_connected', Empty, queue_size=10)
-    disconnectPub = rospy.Publisher('myo_disconnected', Empty, queue_size=10)
+    # imuPub = rospy.Publisher(args.imu_topic, Imu, queue_size=10)
+    # emgPub = rospy.Publisher(args.emg_topic, EmgArray, queue_size=10)
+    # armPub = rospy.Publisher(args.arm_topic, MyoArm, queue_size=10)
+    # gestPub = rospy.Publisher(args.gest_topic, UInt8, queue_size=10)
+
+    connectPub = rospy.Publisher(args.conn_topic, Empty, queue_size=10)
+    
 
     # Package the EMG data into an EmgArray
     def proc_emg(emg, moving, times=[]):
@@ -494,12 +482,12 @@ if __name__ == '__main__':
 
     # Publish when the Myo connects
     def proc_connect():
-	empty = Empty()
+        empty = Empty()
         connectPub.publish(empty)
 
     # Publish when the Myo connects
     def proc_disconnect():
-	empty = Empty()
+        empty = Empty()
         disconnectPub.publish(empty)
 
     # Add a way to vibrate
@@ -507,6 +495,7 @@ if __name__ == '__main__':
         print("Received vibrate msg: " + str(data))
         # This will be checked on every m.run() call
         m.vibration_requested = data.data
+
 
     m.add_emg_handler(proc_emg)
     m.add_imu_handler(proc_imu)

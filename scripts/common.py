@@ -1,5 +1,8 @@
 import struct
 
+def pack1(fmt, *args):
+    return struct.pack('<' + fmt, *args)
+
 def pack(fmt, *args):
     return struct.pack('<' + fmt, *args)
 

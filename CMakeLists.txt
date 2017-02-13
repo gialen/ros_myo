@@ -49,6 +49,7 @@ find_package(catkin REQUIRED COMPONENTS
    FILES
    MyoArm.msg
    EmgArray.msg
+   Vib2.msg
  )
 
 ## Generate services in the 'srv' folder
@@ -96,6 +97,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  include
 )
 
 ## Declare a cpp library
@@ -114,6 +116,39 @@ include_directories(
 # target_link_libraries(ros_myo_node
 #   ${catkin_LIBRARIES}
 # )
+
+
+
+
+
+# # Executable for Motion capture
+# add_executable(Extended_Madgw_node src/main_ex_Madgw.cpp src/Extended_Madgw.cpp )
+# add_dependencies(Extended_Madgw_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(Extended_Madgw_node ${catkin_LIBRARIES})
+
+
+# # Executable for Motion capture prova
+# add_executable(Extended_Madgw_new_node src/main_ex_Madgw_new.cpp src/Extended_Madgw_new.cpp )
+# add_dependencies(Extended_Madgw_new_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(Extended_Madgw_new_node ${catkin_LIBRARIES})
+
+
+# add_executable(Motion_cap_node src/main_Motion_cap.cpp src/Motion_cap.cpp )
+# add_dependencies(Motion_cap_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(Motion_cap_node ${catkin_LIBRARIES})
+
+# add_executable(Motion_cap_new_node src/main_Motion_cap_new.cpp src/Motion_cap_new.cpp )
+# add_dependencies(Motion_cap_new_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(Motion_cap_new_node ${catkin_LIBRARIES})
+
+# add_executable(Hand_control_node src/main_Hand_control.cpp src/Hand_control.cpp )
+# add_dependencies(Hand_control_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(Hand_control_node ${catkin_LIBRARIES})
+
+# add_executable(prova_node src/prova.cpp )
+# add_dependencies(prova_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(prova_node ${catkin_LIBRARIES})
+
 
 #############
 ## Install ##
