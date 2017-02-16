@@ -284,6 +284,8 @@ class MyoRaw(object):
         else:
             name = self.read_attr(0x03)
             print('device name: %s' % name.payload)
+            global glob_name
+            glob_name = name.payload
 
             ## enable IMU data
             self.write_attr(0x1d, b'\x01\x00')
@@ -297,7 +299,7 @@ class MyoRaw(object):
         def handle_data(p):
             if (p.cls, p.cmd) != (4, 5): return
 
-	    self.time_data = time.time()
+            self.time_data = time.time()
 
             c, attr, typ = unpack('BHB', p.payload[:4])
             pay = p.payload[5:]
@@ -317,8 +319,8 @@ class MyoRaw(object):
                 gyro = vals[7:10]
                 self.on_imu(quat, acc, gyro)
             elif attr == 0x23:
-                #typ, val, xdir = unpack('3B', pay)
-		print(': %d %s %s' % (len(pay),pay[0],pay[1]))
+                # typ, val, xdir = unpack('3B', pay)
+                print(': %d %s %s' % (len(pay),pay[0],pay[1]))
                 typ, val, xdir, bla1, bla2, bla3 = unpack('6B', pay)
                 print('%d %d %d' % (bla1, bla2, bla3))
 
@@ -330,10 +332,6 @@ class MyoRaw(object):
                     self.on_pose(Pose(val))
             else:
                 print('data with unknown attr: %02X %s' % (attr, p))
-	
-	if self.cpt == 0:
-        	self.bt.add_handler(handle_data)
-		self.cpt = 1
 
         if self.cpt == 0:
             self.bt.add_handler(handle_data)
@@ -372,7 +370,7 @@ class MyoRaw(object):
 
 
     def add_emg_handler(self, h):
-	self.emg_handlers.append(h)
+        self.emg_handlers.append(h)
 
     def add_imu_handler(self, h):
         self.imu_handlers.append(h)
@@ -417,11 +415,26 @@ class MyoRaw(object):
 if __name__ == '__main__':
     # Start by initializing the Myo and attempting to connect. 
     # If no Myo is found, we attempt to reconnect every 0.5 seconds
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('serial_port', nargs='?', default=None)
+
+    # parser.add_argument('-i', '--imu-topic', default='myo_imu')
+    # parser.add_argument('-e', '--emg-topic', default='myo_emg')
+    # parser.add_argument('-a', '--arm-topic', default='myo_arm')
+    # parser.add_argument('-g', '--gest-topic', default='myo_gest')
+    parser.add_argument('-c', '--conn-topic', default='myo_conn')
+    # parser.add_argument('-d', '--disc-topic', default='myo_disc')
+    # parser.add_argument('-v', '--vib-topic', default='myo_vib')
+
+    args = parser.parse_args()
+
+
     connected = 0;
     print("Initializing...")
     while(connected == 0):
         try:
-            m = MyoRaw(sys.argv[1] if len(sys.argv) >= 2 else None)
+            m = MyoRaw(args.serial_port)
             connected = 1;
         except (ValueError, KeyboardInterrupt) as e:
             print("Myo Armband not found. Attempting to connect...")
@@ -506,7 +519,23 @@ if __name__ == '__main__':
 
     m.connect()
 
-    vibSubs = rospy.Subscriber('myo_vib', UInt8, vibrate_cb, queue_size=10)
+    imu_topic = glob_name[5:20] + '_imu'
+    emg_topic = glob_name[5:20] + '_emg'
+    arm_topic = glob_name[5:20] + '_arm'
+    gest_topic = glob_name[5:20] + '_gest'
+    vibrate_topic = glob_name[5:20] + '_vibrate'
+    vibrate_topic_f = glob_name[5:20] + '_vibrate_f'
+    disc_topic = glob_name[5:20] + '_disc'
+    vib_topic = glob_name[5:20] + '_vib'
+
+    imuPub = rospy.Publisher(imu_topic, Imu, queue_size=10)
+    emgPub = rospy.Publisher(emg_topic, EmgArray, queue_size=10)
+    armPub = rospy.Publisher(arm_topic, MyoArm, queue_size=10)
+    gestPub = rospy.Publisher(gest_topic, UInt8, queue_size=10)
+    disconnectPub = rospy.Publisher(disc_topic, Empty, queue_size=10)
+
+    vibSubs = rospy.Subscriber(vib_topic, UInt8, vibrate_cb, queue_size=10)
+
 
     try:
 
@@ -520,3 +549,4 @@ if __name__ == '__main__':
         print("Disconnecting...")
         m.disconnect()
         print()
+
