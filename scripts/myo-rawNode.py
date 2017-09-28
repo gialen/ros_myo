@@ -505,7 +505,7 @@ if __name__ == '__main__':
 
     # Add a way to vibrate
     def vibrate_cb(data):
-        print("Received vibrate msg: " + str(data))
+        # print("Received vibrate msg: " + str(data))
         # This will be checked on every m.run() call
         m.vibration_requested = data.data
 

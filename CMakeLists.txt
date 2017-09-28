@@ -145,10 +145,13 @@ include_directories(
 # add_dependencies(Hand_control_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 # target_link_libraries(Hand_control_node ${catkin_LIBRARIES})
 
-# add_executable(prova_node src/prova.cpp )
-# add_dependencies(prova_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-# target_link_libraries(prova_node ${catkin_LIBRARIES})
+add_executable(emg_closure src/emg_closure.cpp )
+add_dependencies(emg_closure ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(emg_closure ${catkin_LIBRARIES})
 
+add_executable(vibration_handler src/vibration_handler.cpp )
+add_dependencies(vibration_handler ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(vibration_handler ${catkin_LIBRARIES})
 
 #############
 ## Install ##
